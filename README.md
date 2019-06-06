@@ -25,6 +25,23 @@ HOW TO USE
 1. [GoDoc](http://godoc.org/github.com/vardius/gocontainer)
 2. [Examples](http://godoc.org/github.com/vardius/gocontainer#pkg-examples)
 
+```go
+package main
+
+import "github.com/vardius/gocontainer"
+
+func main() {
+    gocontainer.Register("test.service")
+
+    service, ok := gocontainer.Get("test.service")
+    if !ok {
+        log.Fatal("Service not found")    
+    }
+
+    service.DoSomething()
+}
+```
+
 License
 -------
 
