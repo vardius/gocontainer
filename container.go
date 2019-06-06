@@ -67,22 +67,26 @@ func Invoke(id string, fn interface{}) {
 		panic(fmt.Sprintf("%s is not a reflect.Func", reflect.TypeOf(fn)))
 	}
 
-	callback := reflect.ValueOf(fn)
 	o, ok := Get(id)
-
+	callback := reflect.ValueOf(fn)
 	args := []reflect.Value{reflect.ValueOf(o), reflect.ValueOf(ok)}
 
 	callback.Call(args)
 }
 
-// MustInvoke calls Invoke underneath
+// MustInvoke calls MustGet underneath
 // will panic if object not found within container
 func MustInvoke(id string, fn interface{}) {
-	if !Has(id) {
-		panic(fmt.Sprintf("Object <%s> nof found within a container", id))
+	if reflect.TypeOf(fn).Kind() != reflect.Func {
+		panic(fmt.Sprintf("%s is not a reflect.Func", reflect.TypeOf(fn)))
 	}
 
-	Invoke(id, fn)
+	o := MustGet(id)
+
+	callback := reflect.ValueOf(fn)
+	args := []reflect.Value{reflect.ValueOf(o)}
+
+	callback.Call(args)
 }
 
 func init() {
