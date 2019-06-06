@@ -20,7 +20,7 @@ func Example_deregister() {
 
 	fmt.Println(gocontainer.Get("test"))
 	// Output:
-	// nil, true
+	// nil, false
 }
 
 func Example_has() {
