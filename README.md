@@ -28,72 +28,73 @@ HOW TO USE
 First file `main.go` simply gets the repository from the container and prints it
 we use **MustInvoke** method to simply present the way where we keep type safety
 ```go
-	package main
+package main
 
-	import (
-		_ "github.com/vardius/gocontainer/example/database"
-		"github.com/vardius/gocontainer/example/repository"
-		"github.com/vardius/gocontainer"
-	)
+import (
+    _ "github.com/vardius/gocontainer/example/database"
+    "github.com/vardius/gocontainer/example/repository"
+    "github.com/vardius/gocontainer"
+)
 
-	func main() {
-		gocontainer.MustInvoke("repository.mysql", func(r Repository) {
-			fmt.Println(r)
-		})
-	}
+func main() {
+    gocontainer.MustInvoke("repository.mysql", func(r Repository) {
+        fmt.Println(r)
+    })
+}
 ```
 Our database implementation uses `init()` function to register db service
 ```go
-	package database
+package database
 
-	import (
-		"fmt"
-		"database/sql"
+import (
+    "fmt"
+    "database/sql"
 
-		"github.com/vardius/gocontainer"
-	)
+    "github.com/vardius/gocontainer"
+)
 
-	func NewDatabase() *sql.DB {
-		db, _ := sql.Open("mysql", "dsn")
+func NewDatabase() *sql.DB {
+    db, _ := sql.Open("mysql", "dsn")
 
-		return db
-	}
+    return db
+}
 
-	func init() {
-		db := gocontainer.MustGet("db")
+func init() {
+    db := gocontainer.MustGet("db")
 
-		gocontainer.Register("db", NewDatabase())
-	}
+    gocontainer.Register("db", NewDatabase())
+}
 ```
 Our repository accesses earlier on registered db service
 and following the same patter uses `init()` function to register repository service within container
 ```go
-	package repository
+package repository
 
-	import (
-		"fmt"
-		"database/sql"
+import (
+    "fmt"
+    "database/sql"
 
-		"github.com/vardius/gocontainer"
-	)
+    "github.com/vardius/gocontainer"
+)
 
-	type Repository interface {}
+type Repository interface {}
 
-	func NewRepository(db *sql.DB) Repository {
-		return &mysqlRepository{db}
-	}
+func NewRepository(db *sql.DB) Repository {
+    return &mysqlRepository{db}
+}
 
-	type mysqlRepository struct {
-		db *sql.DB
-	}
+type mysqlRepository struct {
+    db *sql.DB
+}
 
-	func init() {
-		db := gocontainer.MustGet("db")
+func init() {
+    db := gocontainer.MustGet("db")
 
-		gocontainer.Register("repository.mysql", NewRepository(db))
-	}
+    gocontainer.Register("repository.mysql", NewRepository(db))
+}
 ```
 Please check [GoDoc](http://godoc.org/github.com/vardius/gocontainer) for more methods and examples.
+
 License
 -------
 
