@@ -62,7 +62,7 @@ and following the same patter uses `init()` function to register repository serv
 	func init() {
 		db := gocontainer.MustGet("db")
 
-		gocontainer.Register("repository.mysql", NewRepository(db))
+		gocontainer.Register("repository.mysql", NewRepository(db.(*sql.DB)))
 	}
 */
 package gocontainer

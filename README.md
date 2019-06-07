@@ -90,7 +90,7 @@ type mysqlRepository struct {
 func init() {
     db := gocontainer.MustGet("db")
 
-    gocontainer.Register("repository.mysql", NewRepository(db))
+    gocontainer.Register("repository.mysql", NewRepository(db.(*sql.DB)))
 }
 ```
 Please check [GoDoc](http://godoc.org/github.com/vardius/gocontainer) for more methods and examples.
