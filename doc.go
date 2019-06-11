@@ -7,7 +7,6 @@ we use **MustInvoke** method to simply present the way where we keep type safety
 	package main
 
 	import (
-		_ "github.com/vardius/gocontainer/example/database"
 		"github.com/vardius/gocontainer/example/repository"
 		"github.com/vardius/gocontainer"
 	)
@@ -47,6 +46,7 @@ and following the same patter uses `init()` function to register repository serv
 		"database/sql"
 
 		"github.com/vardius/gocontainer"
+		_ "github.com/vardius/gocontainer/example/database"
 	)
 
 	type Repository interface {}
