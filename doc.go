@@ -64,5 +64,22 @@ and following the same patter uses `init()` function to register repository serv
 
 		gocontainer.Register("repository.mysql", NewRepository(db.(*sql.DB)))
 	}
+You can disable global container instance by setting gocontainer.InitializeGlobalContainer to false.
+This package allows yuo to create many containers.
+	package main
+
+	import (
+		"github.com/vardius/gocontainer/example/repository"
+		"github.com/vardius/gocontainer"
+	)
+
+	// disable global container instance
+	// remember to do it outside function body
+	gocontainer.InitializeGlobalContainer = false
+
+	func main() {
+		mycontainer := gocontainer.New()
+		mycontainer.Register("test", 1)
+	}
 */
 package gocontainer
