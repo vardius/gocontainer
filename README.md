@@ -25,6 +25,8 @@ HOW TO USE
 1. [GoDoc](http://godoc.org/github.com/vardius/gocontainer)
 2. [Examples](http://godoc.org/github.com/vardius/gocontainer#pkg-examples)
 
+3. [MustInvokeMany](https://godoc.org/github.com/vardius/gocontainer#MustInvokeMany)
+
 First file `main.go` simply gets the repository from the container and prints it
 we use **MustInvoke** method to simply present the way where we keep type safety
 ```go

@@ -73,6 +73,13 @@ func MustInvoke(id string, fn interface{}) {
 	c.MustInvoke(id, fn)
 }
 
+// MustInvokeMany calls MustInvoke underneath
+// returns many services from container
+// will panic if object not found within container
+func MustInvokeMany(ids ...string) func(fn interface{}) {
+	return c.MustInvokeMany(ids...)
+}
+
 func init() {
 	if !InitializeGlobalContainer {
 		return

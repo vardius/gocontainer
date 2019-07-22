@@ -15,6 +15,7 @@ type Container interface {
 	MustGet(id string) interface{}
 	Invoke(id string, fn interface{})
 	MustInvoke(id string, fn interface{})
+	MustInvokeMany(ids ...string) func(fn interface{})
 }
 
 type container struct {
@@ -100,4 +101,26 @@ func (c *container) MustInvoke(id string, fn interface{}) {
 	args := []reflect.Value{reflect.ValueOf(o)}
 
 	callback.Call(args)
+}
+
+// MustInvokeMany calls MustInvoke underneath
+// returns many services from container
+// will panic if object not found within container
+func (c *container) MustInvokeMany(ids ...string) func(fn interface{}) {
+	var args []reflect.Value
+
+	for _, id := range ids {
+		o := c.MustGet(id)
+
+		args = append(args, reflect.ValueOf(o))
+	}
+
+	return func(fn interface{}) {
+		if reflect.TypeOf(fn).Kind() != reflect.Func {
+			panic(fmt.Sprintf("%s is not a reflect.Func", reflect.TypeOf(fn)))
+		}
+
+		callback := reflect.ValueOf(fn)
+		callback.Call(args)
+	}
 }

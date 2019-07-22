@@ -85,3 +85,15 @@ func Example_mustInvoke() {
 	// Output:
 	// 1
 }
+
+func Example_mustInvokeMany() {
+	gocontainer.Register("test1", 1)
+	gocontainer.Register("test2", 2)
+
+	gocontainer.MustInvokeMany("test1", "test2")(func(x int, y int) {
+		fmt.Println(x, "|", y)
+	})
+
+	// Output:
+	// 1|2
+}

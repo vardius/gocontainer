@@ -73,3 +73,16 @@ func TestMustInvoke(t *testing.T) {
 		}
 	})
 }
+
+func TestMustInvokeMany(t *testing.T) {
+	Register("test1", 1)
+	Register("test2", 2)
+	MustInvokeMany("test1", "test2")(func(x int, y int) {
+		if x != 1 {
+			t.Fail()
+		}
+		if y != 2 {
+			t.Fail()
+		}
+	})
+}
