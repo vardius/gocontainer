@@ -19,6 +19,9 @@ func Example_new() {
 }
 
 func Example_register() {
+	// called by gocontainer's init() function
+	gocontainer.GlobalContainer = gocontainer.New()
+
 	gocontainer.Register("test", 1)
 
 	fmt.Println(gocontainer.MustGet("test"))
@@ -27,6 +30,9 @@ func Example_register() {
 }
 
 func Example_deregister() {
+	// called by gocontainer's init() function
+	gocontainer.GlobalContainer = gocontainer.New()
+
 	gocontainer.Register("test", 1)
 	gocontainer.Deregister("test")
 
@@ -36,6 +42,9 @@ func Example_deregister() {
 }
 
 func Example_has() {
+	// called by gocontainer's init() function
+	gocontainer.GlobalContainer = gocontainer.New()
+
 	gocontainer.Register("test", 1)
 
 	fmt.Println(gocontainer.Has("test"))
@@ -44,6 +53,9 @@ func Example_has() {
 }
 
 func Example_get() {
+	// called by gocontainer's init() function
+	gocontainer.GlobalContainer = gocontainer.New()
+
 	gocontainer.Register("test", 1)
 	o, ok := gocontainer.Get("test")
 
@@ -55,6 +67,9 @@ func Example_get() {
 }
 
 func Example_mustGet() {
+	// called by gocontainer's init() function
+	gocontainer.GlobalContainer = gocontainer.New()
+
 	gocontainer.Register("test", 1)
 	o := gocontainer.MustGet("test")
 
@@ -64,6 +79,9 @@ func Example_mustGet() {
 }
 
 func Example_invoke() {
+	// called by gocontainer's init() function
+	gocontainer.GlobalContainer = gocontainer.New()
+
 	gocontainer.Register("test", 1)
 	gocontainer.Invoke("test", func(i int, ok bool) {
 		fmt.Println(i)
@@ -76,6 +94,9 @@ func Example_invoke() {
 }
 
 func Example_mustInvoke() {
+	// called by gocontainer's init() function
+	gocontainer.GlobalContainer = gocontainer.New()
+
 	gocontainer.Register("test", 1)
 	gocontainer.MustInvoke("test", func(i int) {
 		fmt.Println(i)
@@ -86,6 +107,9 @@ func Example_mustInvoke() {
 }
 
 func Example_mustInvokeMany() {
+	// called by gocontainer's init() function
+	gocontainer.GlobalContainer = gocontainer.New()
+
 	gocontainer.Register("test1", 1)
 	gocontainer.Register("test2", 2)
 
