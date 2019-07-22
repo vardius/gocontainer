@@ -1,89 +1,84 @@
 package gocontainer
 
 var (
-	// InitializeGlobalContainer enables global container instance
-	// instance will be initialized with package import by init() function
-	InitializeGlobalContainer = true
-	c                         Container
+	// GlobalContainer global container instance
+	// instance initialized by package's init() function
+	GlobalContainer Container
 )
 
 // Register service by id
 func Register(id string, object interface{}) {
-	if c == nil {
+	if GlobalContainer == nil {
 		panic("Global container instance is not initialized")
 	}
 
-	c.Register(id, object)
+	GlobalContainer.Register(id, object)
 }
 
 // Deregister service be id
 func Deregister(id string) {
-	if c == nil {
+	if GlobalContainer == nil {
 		panic("Global container instance is not initialized")
 	}
 
-	c.Deregister(id)
+	GlobalContainer.Deregister(id)
 }
 
 // Has checks if container has an object
 func Has(id string) bool {
-	if c == nil {
+	if GlobalContainer == nil {
 		panic("Global container instance is not initialized")
 	}
 
-	return c.Has(id)
+	return GlobalContainer.Has(id)
 }
 
 // Get a service by id
 func Get(id string) (interface{}, bool) {
-	if c == nil {
+	if GlobalContainer == nil {
 		panic("Global container instance is not initialized")
 	}
 
-	return c.Get(id)
+	return GlobalContainer.Get(id)
 }
 
 // MustGet calls Get underneath
 // will panic if object not found within container
 func MustGet(id string) interface{} {
-	if c == nil {
+	if GlobalContainer == nil {
 		panic("Global container instance is not initialized")
 	}
 
-	return c.MustGet(id)
+	return GlobalContainer.MustGet(id)
 }
 
 // Invoke gets a service safely typed by passing it to a closure
 // will panic if callback is not a function
 func Invoke(id string, fn interface{}) {
-	if c == nil {
+	if GlobalContainer == nil {
 		panic("Global container instance is not initialized")
 	}
 
-	c.Invoke(id, fn)
+	GlobalContainer.Invoke(id, fn)
 }
 
 // MustInvoke calls MustGet underneath
 // will panic if object not found within container
 func MustInvoke(id string, fn interface{}) {
-	if c == nil {
+	if GlobalContainer == nil {
 		panic("Global container instance is not initialized")
 	}
 
-	c.MustInvoke(id, fn)
+	GlobalContainer.MustInvoke(id, fn)
 }
 
 // MustInvokeMany calls MustInvoke underneath
 // returns many services from container
 // will panic if object not found within container
 func MustInvokeMany(ids ...string) func(fn interface{}) {
-	return c.MustInvokeMany(ids...)
+	return GlobalContainer.MustInvokeMany(ids...)
 }
 
 func init() {
-	if !InitializeGlobalContainer {
-		return
-	}
-
-	c = New()
+	GlobalContainer = New()
 }

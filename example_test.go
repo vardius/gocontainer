@@ -8,8 +8,7 @@ import (
 
 func Example_new() {
 	// disable global container instance
-	// remember to do it outside function body
-	gocontainer.InitializeGlobalContainer = false
+	gocontainer.GlobalContainer = nil
 
 	mycontainer := gocontainer.New()
 	mycontainer.Register("test", 1)
