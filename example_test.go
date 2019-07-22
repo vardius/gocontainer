@@ -6,6 +6,17 @@ import (
 	gocontainer "github.com/vardius/gocontainer"
 )
 
+func Example_new() {
+	// disable global container instance
+	gocontainer.InitializeGlobalContainer = false
+	mycontainer := gocontainer.New()
+	mycontainer.Register("test", 1)
+
+	fmt.Println(mycontainer.MustGet("test"))
+	// Output:
+	// 1
+}
+
 func Example_register() {
 	gocontainer.Register("test", 1)
 

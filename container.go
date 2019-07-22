@@ -6,18 +6,31 @@ import (
 	"sync"
 )
 
-var (
-	c    *container
-	once sync.Once
-)
+// Container interface
+type Container interface {
+	Register(id string, object interface{})
+	Deregister(id string)
+	Has(id string) bool
+	Get(id string) (interface{}, bool)
+	MustGet(id string) interface{}
+	Invoke(id string, fn interface{})
+	MustInvoke(id string, fn interface{})
+}
 
 type container struct {
 	sync.RWMutex
 	registry map[string]interface{}
 }
 
+// New creates new container
+func New() Container {
+	return &container{
+		registry: make(map[string]interface{}),
+	}
+}
+
 // Register service by id
-func Register(id string, object interface{}) {
+func (c *container) Register(id string, object interface{}) {
 	if c.registry == nil {
 		c.registry = make(map[string]interface{})
 	}
@@ -27,21 +40,21 @@ func Register(id string, object interface{}) {
 }
 
 // Deregister service be id
-func Deregister(id string) {
+func (c *container) Deregister(id string) {
 	c.Lock()
 	delete(c.registry, id)
 	c.Unlock()
 }
 
 // Has checks if container has an object
-func Has(id string) bool {
-	_, ok := Get(id)
+func (c *container) Has(id string) bool {
+	_, ok := c.Get(id)
 
 	return ok
 }
 
 // Get a service by id
-func Get(id string) (interface{}, bool) {
+func (c *container) Get(id string) (interface{}, bool) {
 	c.RLock()
 	o, ok := c.registry[id]
 	c.RUnlock()
@@ -51,8 +64,8 @@ func Get(id string) (interface{}, bool) {
 
 // MustGet calls Get underneath
 // will panic if object not found within container
-func MustGet(id string) interface{} {
-	o, ok := Get(id)
+func (c *container) MustGet(id string) interface{} {
+	o, ok := c.Get(id)
 	if !ok {
 		panic(fmt.Sprintf("Object <%s> nof found within a container", id))
 	}
@@ -62,12 +75,12 @@ func MustGet(id string) interface{} {
 
 // Invoke gets a service safely typed by passing it to a closure
 // will panic if callback is not a function
-func Invoke(id string, fn interface{}) {
+func (c *container) Invoke(id string, fn interface{}) {
 	if reflect.TypeOf(fn).Kind() != reflect.Func {
 		panic(fmt.Sprintf("%s is not a reflect.Func", reflect.TypeOf(fn)))
 	}
 
-	o, ok := Get(id)
+	o, ok := c.Get(id)
 	callback := reflect.ValueOf(fn)
 	args := []reflect.Value{reflect.ValueOf(o), reflect.ValueOf(ok)}
 
@@ -76,23 +89,15 @@ func Invoke(id string, fn interface{}) {
 
 // MustInvoke calls MustGet underneath
 // will panic if object not found within container
-func MustInvoke(id string, fn interface{}) {
+func (c *container) MustInvoke(id string, fn interface{}) {
 	if reflect.TypeOf(fn).Kind() != reflect.Func {
 		panic(fmt.Sprintf("%s is not a reflect.Func", reflect.TypeOf(fn)))
 	}
 
-	o := MustGet(id)
+	o := c.MustGet(id)
 
 	callback := reflect.ValueOf(fn)
 	args := []reflect.Value{reflect.ValueOf(o)}
 
 	callback.Call(args)
-}
-
-func init() {
-	once.Do(func() {
-		c = &container{
-			registry: make(map[string]interface{}),
-		}
-	})
 }
