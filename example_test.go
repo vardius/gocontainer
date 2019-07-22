@@ -95,5 +95,5 @@ func Example_mustInvokeMany() {
 	})
 
 	// Output:
-	// 1|2
+	// 1 | 2
 }
