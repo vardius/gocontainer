@@ -6,9 +6,11 @@ gocontainer
 [![](https://godoc.org/github.com/vardius/gocontainer?status.svg)](http://godoc.org/github.com/vardius/gocontainer)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/vardius/gocontainer/blob/master/LICENSE.md)
 
+<img align="right" height="180px" src="https://github.com/vardius/gorouter/blob/master/website/src/static/img/logo.png?raw=true" alt="logo" />
+
 gocontainer - Dependency Injection Container
 
-ABOUT
+📖 ABOUT
 ==================================================
 Contributors:
 
@@ -19,13 +21,16 @@ Want to contribute ? Feel free to send pull requests!
 Have problems, bugs, feature ideas?
 We are using the github [issue tracker](https://github.com/vardius/gocontainer/issues) to manage them.
 
-HOW TO USE
+## 📚 Documentation
+
+For __examples__ **visit [godoc#pkg-examples](http://godoc.org/github.com/vardius/gocontainer#pkg-examples)**
+
+For **GoDoc** reference, **visit [godoc.org](http://godoc.org/github.com/vardius/gocontainer)**
+
+[MustInvokeMany](https://godoc.org/github.com/vardius/gocontainer#example-package--MustInvokeMany)
+
+🚏 HOW TO USE
 ==================================================
-
-1. [GoDoc](http://godoc.org/github.com/vardius/gocontainer)
-2. [Examples](http://godoc.org/github.com/vardius/gocontainer#pkg-examples)
-
-3. [MustInvokeMany](https://godoc.org/github.com/vardius/gocontainer#example-package--MustInvokeMany)
 
 First file `main.go` simply gets the repository from the container and prints it
 we use **MustInvoke** method to simply present the way where we keep type safety
@@ -115,9 +120,7 @@ func main() {
 ```
 Please check [GoDoc](http://godoc.org/github.com/vardius/gocontainer) for more methods and examples.
 
-License
+📜 [License](LICENSE.md)
 -------
 
-This package is released under the MIT license. See the complete license in the package:
-
-[LICENSE](LICENSE.md)
+This package is released under the MIT license. See the complete license in the package
