@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/vardius/gocontainer.svg?branch=master)](https://travis-ci.org/vardius/gocontainer)
 [![Go Report Card](https://goreportcard.com/badge/github.com/vardius/gocontainer)](https://goreportcard.com/report/github.com/vardius/gocontainer)
 [![codecov](https://codecov.io/gh/vardius/gocontainer/branch/master/graph/badge.svg)](https://codecov.io/gh/vardius/gocontainer)
-[![](https://godoc.org/github.com/vardius/gocontainer?status.svg)](http://godoc.org/github.com/vardius/gocontainer)
+[![](https://godoc.org/github.com/vardius/gocontainer?status.svg)](https://pkg.go.dev/github.com/vardius/gocontainer)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/vardius/gocontainer/blob/master/LICENSE.md)
 
 <img align="right" height="180px" src="https://github.com/vardius/gorouter/blob/master/website/src/static/img/logo.png?raw=true" alt="logo" />
@@ -25,7 +25,7 @@ We are using the github [issue tracker](https://github.com/vardius/gocontainer/i
 
 For __examples__ **visit [godoc#pkg-examples](http://godoc.org/github.com/vardius/gocontainer#pkg-examples)**
 
-For **GoDoc** reference, **visit [godoc.org](http://godoc.org/github.com/vardius/gocontainer)**
+For **GoDoc** reference, **visit [pkg.go.dev](https://pkg.go.dev/github.com/vardius/gocontainer)**
 
 [MustInvokeMany](https://godoc.org/github.com/vardius/gocontainer#example-package--MustInvokeMany)
 
