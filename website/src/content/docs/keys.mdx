@@ -1,0 +1,78 @@
+---
+title: Keys
+description: A Key names a service and fixes its type. Declare each key once, share it, and use it with any container.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+```go
+type Key[T any] struct{ /* unexported */ }
+
+func NewKey[T any](name string) Key[T]
+```
+
+A key names a service and fixes its type. Every way into and out of a container goes through a key's methods,
+so the type travels with it: `Register` takes a `T`, and `Get` and `MustGet` return one.
+
+```go
+var (
+	DB    = gocontainer.NewKey[*sql.DB]("db")
+	Users = gocontainer.NewKey[UserStore]("users")
+)
+```
+
+## The type is checked when you build
+
+`Register` takes the key's type, or anything assignable to it. A concrete type goes in under an interface key as
+it is, and a value that doesn't fit is a compile error, not a panic at run time:
+
+```go
+Users.Register(&c, NewSQLUsers(db)) // *SQLUsers implements UserStore: fine
+Users.Register(&c, db)              // compile error: *sql.DB is not a UserStore
+```
+
+What comes out is the key's type, so there is nothing to assert:
+
+```go
+users := Users.MustGet(&c) // a UserStore
+```
+
+Give an interface key to a service you'll want to swap, in tests or between implementations, and a concrete key to
+the rest. A key of type `any` takes anything, as v1's string ids did, and gives back an `any`.
+
+## Every key is unique
+
+Each `NewKey` call makes a different key, even for the same name and type, as `errors.New` makes a different error.
+Two packages can't find or replace each other's services by picking the same name: a service is only reachable
+by code that has its key.
+
+```go
+a := gocontainer.NewKey[string]("dsn")
+b := gocontainer.NewKey[string]("dsn")
+
+a.Register(&c, "postgres://primary")
+b.Has(&c) // false: a different key
+```
+
+So declare each key once, at package level, and share the variable. A good home is the package that provides the
+service, next to its type, so that whoever uses the service imports the key with it:
+
+```go
+package users
+
+// Key is the users store in a container.
+var Key = gocontainer.NewKey[Store]("users")
+```
+
+The name doesn't make a key unique; it labels the key in panic messages, such as
+`gocontainer: no users.Store registered as "users"`.
+
+## Keys and containers
+
+A key isn't tied to a container. The same key works with any number of them, and finds in each the service
+registered there under it. That is how a test registers a fake: see [Testing](../testing/).
+
+<Aside type="caution" title="The zero Key">
+A `Key` declared without `NewKey` names nothing. `Register` panics with it, `Get`, `Has` and `Deregister` find
+nothing under it, and `MustGet` panics. Make every key with `NewKey`.
+</Aside>

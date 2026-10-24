@@ -1,0 +1,66 @@
+---
+title: Getting started
+description: Install gocontainer, declare keys for your services, register them in a container and get them back typed.
+---
+
+import { Code, LinkCard, CardGrid, Steps } from '@astrojs/starlight/components';
+import wiring from '../../../../examples/wiring/main.go?raw';
+
+gocontainer holds your app's services, each under a key that fixes its type. It has two types:
+
+- **Key[T]** names a service of type `T`. Its methods put the service in a container and get it out as a `T`.
+- **Container** holds the services. The zero value is empty and ready to use.
+
+## Install
+
+gocontainer needs Go 1.26 or newer.
+
+```sh
+go get github.com/vardius/gocontainer/v2
+```
+
+## Your first container
+
+This program has three services: a logger, a store of users, and a greeter built from the other two.
+It declares a key for each, registers them in order, and gets the greeter back to use it:
+
+<Code code={wiring} lang="go" title="examples/wiring/main.go" />
+
+## Run it
+
+<Steps>
+
+1. From a clone of the repository:
+
+   ```sh
+   go run ./examples/wiring
+   ```
+
+2. It greets the two users it knows and logs a warning for the one it doesn't:
+
+   ```txt
+   Hello, Ada.
+   Hello, Grace.
+   time=… level=WARN msg="unknown user" id=3
+   Hello, stranger.
+   ```
+
+</Steps>
+
+## What just happened
+
+- Each key, made with `NewKey`, named a service and fixed its type: `usersKey` is a `Key[Users]`.
+- `usersKey.Register` took a `memoryUsers`, which implements `Users`, with no conversion. A value that isn't a
+  `Users` wouldn't have compiled.
+- The greeter was built from services registered before it, with `MustGet`, which returns the key's type:
+  no type assertions anywhere.
+- `main` declared the container. There is no global one, and nothing ran in `init()`.
+
+## Next steps
+
+<CardGrid>
+	<LinkCard title="Keys" href="../keys/" description="Declaring keys, interface keys, and why every key is unique." />
+	<LinkCard title="Container" href="../container/" description="Register, Get, MustGet, Has and Deregister, and what they cost." />
+	<LinkCard title="Testing" href="../testing/" description="Swap a service for a fake in a test's own container." />
+	<LinkCard title="Benchmarks" href="../benchmarks/" description="What each call costs, and how v2 compares with v1." />
+</CardGrid>

@@ -1,0 +1,71 @@
+---
+title: Benchmarks
+description: What each gocontainer call costs, how v2 compares with v1, and how to measure it yourself.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import BenchmarkChart from '../../components/BenchmarkChart.astro';
+import BenchmarkSuite from '../../components/BenchmarkSuite.astro';
+import { comparison, suite } from '../../data/benchmarks';
+
+These numbers measure the container alone: every service is a pointer that is already built, so what's left is
+the cost of finding it. In every benchmark the container holds 32 services, about what an app wires at startup,
+and the one read is in the middle of them.
+
+## v2 against v1
+
+Both versions ran on the same harness. v1's `Invoke` calls are measured against the v2 calls that replace them:
+where v1 handed a service to a func through reflection, v2's `Get` returns it typed.
+With 16 goroutines at once, the time is the wall time divided by all of their reads, as `go test` reports it:
+it measures throughput, not how long one read takes.
+
+<Tabs syncKey="op">
+<TabItem label="Get">
+<BenchmarkChart title="Time per read" rows={comparison.get} />
+</TabItem>
+<TabItem label="Invoke">
+<BenchmarkChart title="Time to get services into your code" rows={comparison.invoke} />
+</TabItem>
+<TabItem label="Parallel">
+<BenchmarkChart title="Wall time per read, 16 goroutines at once" rows={comparison.parallel} />
+</TabItem>
+<TabItem label="Register">
+<BenchmarkChart title="Time per Register" rows={comparison.register} />
+</TabItem>
+</Tabs>
+
+v1 read under a read-write lock. Every reader writes to the lock's shared counter, so readers on different cores
+queue for it, and reading from 16 goroutines at once cost more per read than reading from one.
+v2 keeps its services in a map it never changes once it's published: a read is an atomic load and a lookup, and
+readers don't touch anything another core writes.
+
+The price is on the other side. To change the map, `Register` and `Deregister` copy it and swap the copy in,
+so they are slower than v1's and grow with the number of services. Services are registered once, at startup,
+and read for as long as the program runs, so v2 makes that trade.
+
+## v2's own suite
+
+<BenchmarkSuite rows={suite} />
+
+<Aside title="Where the allocations go">
+`Get`, `MustGet` and `Has` allocate nothing. `Register` and `Deregister` allocate the copy of the map: a small map
+is a couple of allocations, a larger one a few more for its internal tables, plus the pointer that is swapped in.
+Registering a value that isn't a pointer may also box it on the heap.
+</Aside>
+
+## Run them yourself
+
+From a clone of the repository:
+
+```sh
+go test -run '^$' -bench . -benchmem
+```
+
+To compare two versions, run each a few times and compare with [benchstat](https://pkg.go.dev/golang.org/x/perf/cmd/benchstat):
+
+```sh
+go test -run '^$' -bench . -count 10 > new.txt
+benchstat old.txt new.txt
+```
+
+The allocation counts are also enforced by tests: `TestAllocations` fails if a call allocates more than it should.

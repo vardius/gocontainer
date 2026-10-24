@@ -1,0 +1,95 @@
+---
+title: Container
+description: Register, Get, MustGet, Has and Deregister services in a Container, safely from many goroutines, and what each call costs.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+```go
+type Container struct{ /* unexported */ }
+
+func (k Key[T]) Register(c *Container, v T)
+func (k Key[T]) Get(c *Container) (T, bool)
+func (k Key[T]) MustGet(c *Container) T
+func (k Key[T]) Has(c *Container) bool
+func (k Key[T]) Deregister(c *Container)
+```
+
+A container holds services, each under its key. The zero value is empty and ready to use, so there is no
+constructor: declare one where you wire your services, often in `main`, and pass it, or better the services
+you get from it, to the code that needs them.
+
+```go
+var c gocontainer.Container
+```
+
+## Register
+
+`Register` puts a service in the container under a key. Registering again under the same key replaces the service.
+
+```go
+DB.Register(&c, openDB())
+Users.Register(&c, NewSQLUsers(DB.MustGet(&c)))
+```
+
+Register services in the order they need each other: a service built from others gets them with `MustGet`,
+so they must be registered first.
+
+## Get and MustGet
+
+`MustGet` returns the service as the key's type, and panics if nothing is registered under the key. Use it where
+a missing service is a bug, as when wiring at startup:
+
+```go
+users := Users.MustGet(&c) // a UserStore
+```
+
+The panic is an error that names the type and the key: `gocontainer: no main.UserStore registered as "users"`.
+
+`Get` reports a missing service instead, as a map lookup does:
+
+```go
+if cache, ok := Cache.Get(&c); ok {
+	handler = withCache(handler, cache)
+}
+```
+
+A service registered as nil comes back as nil with `ok` true: it is registered. Under an interface key, a nil
+pointer is not a nil interface: `Get` returns an interface holding that nil pointer, which doesn't compare equal
+to `nil`.
+
+## Has and Deregister
+
+`Has` reports whether a service is registered under a key, without getting it. `Deregister` removes the service;
+it does nothing if there is none.
+
+```go
+if Cache.Has(&c) {
+	Cache.Deregister(&c)
+}
+```
+
+## Many goroutines
+
+A container is safe for concurrent use: goroutines can get services while others register or deregister them.
+A goroutine that gets a service while it's being replaced gets either the old one or the new one.
+
+Reads take no lock. The container keeps its services in a map that it never changes once it's published:
+`Get`, `MustGet` and `Has` load the current map atomically and look the key up, so goroutines reading at once
+don't slow each other down.
+
+<Aside type="caution" title="Don't copy a Container">
+A `Container` holds a lock, so it must not be copied after first use: pass a `*Container`. `go vet` reports copies.
+</Aside>
+
+## What it costs
+
+| Call | Cost |
+| --- | --- |
+| `Get`, `MustGet`, `Has` | A map lookup and, for `Get` and `MustGet`, a type assertion. No lock, no allocation. |
+| `Register`, `Deregister` | A copy of the map, changed and swapped in. Time and memory grow with the number of services. |
+
+Writes copy the map so that reads never wait for them. A write takes a few hundred nanoseconds with 32 services,
+and several microseconds with a thousand, so register your services at startup: the container isn't meant for a
+registry that changes on every request. Registering a value that isn't a pointer, such as a struct, may also box it on the heap; `Get` copies it
+out without allocating.

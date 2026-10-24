@@ -1,0 +1,78 @@
+---
+// Headline numbers under the hero, read from the same results as the benchmark charts so they can't drift apart.
+import { comparison, type Group } from '../data/benchmarks';
+
+const row = (group: Group, scenario: string) => {
+	const r = comparison[group].find((r) => r.scenario === scenario);
+	if (!r) throw new Error(`no ${group} benchmark named ${scenario}`);
+	return r;
+};
+
+const get = row('get', 'Get');
+const invoke = row('invoke', 'Invoke in v1, Get in v2');
+const parallel = row('parallel', 'Get from 16 goroutines at once');
+const readAllocs = Math.max(...comparison.get.map((r) => r.after.allocs));
+
+const stats = [
+	{
+		value: `${Math.round(invoke.before.ns / invoke.after.ns)}×`,
+		label: "faster than v1's Invoke: Get returns the type, with no reflection",
+	},
+	{
+		value: `${Math.round(parallel.before.ns / parallel.after.ns)}×`,
+		label: 'faster than v1 to read from 16 goroutines at once',
+	},
+	{ value: `${get.after.ns.toFixed(1)} ns`, label: 'to get a service: a map lookup with no lock' },
+	{ value: `${readAllocs}`, label: 'allocations to Get, MustGet or check with Has' },
+];
+---
+
+<ul class="stats not-content">
+	{
+		stats.map((s) => (
+			<li>
+				<span class="value">{s.value}</span>
+				<span class="label">{s.label}</span>
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	.stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+		gap: 1px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 0.75rem;
+		overflow: hidden;
+		background: var(--sl-color-hairline-light);
+	}
+
+	li {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		margin: 0;
+		padding: 1.25rem 1.5rem;
+		background: var(--sl-color-bg);
+	}
+
+	.value {
+		font-size: var(--sl-text-3xl);
+		font-weight: 700;
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+		color: var(--sl-color-white);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.label {
+		font-size: var(--sl-text-sm);
+		line-height: 1.4;
+		color: var(--sl-color-gray-3);
+	}
+</style>

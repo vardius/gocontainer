@@ -1,0 +1,44 @@
+---
+title: Testing
+description: Swap a service for a fake in tests, by registering it under the same key in a container of the test's own.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import server from '../../../../examples/server/main.go?raw';
+import serverTest from '../../../../examples/server/main_test.go?raw';
+
+A key works with any number of containers, and finds in each the service registered there. So code that takes
+its services from a container can be tested with fakes: register them under the same keys, in a container the
+test makes for itself.
+
+```go
+var c gocontainer.Container
+Users.Register(&c, downUsers{}) // a fake whose every call fails
+
+h := routes(&c) // built with the fake
+```
+
+Each test gets a fresh container, so tests don't see each other's fakes and can run in parallel. There is no
+global container to reset.
+
+## Fakes need interface keys
+
+A fake can only go in under a key whose type it fits. Give the services you'll fake an interface key, such as
+`Key[Users]`; a key for a concrete type, such as `Key[*SQLUsers]`, only takes that type.
+
+## Example: an HTTP server
+
+The server's handler takes its user store from a container. `main` registers the real store:
+
+<Code code={server} lang="go" title="examples/server/main.go" />
+
+The test registers a different store for each case, including a fake whose database is down, and checks what
+the handler answers:
+
+<Code code={serverTest} lang="go" title="examples/server/main_test.go" />
+
+Run it from a clone of the repository:
+
+```sh
+go test ./examples/server
+```
