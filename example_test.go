@@ -2,121 +2,100 @@ package gocontainer_test
 
 import (
 	"fmt"
+	"os"
 
-	gocontainer "github.com/vardius/gocontainer"
+	"github.com/vardius/gocontainer/v2"
 )
 
-func Example_new() {
-	// disable global container instance
-	gocontainer.GlobalContainer = nil
-
-	mycontainer := gocontainer.New()
-	mycontainer.Register("test", 1)
-
-	fmt.Println(mycontainer.MustGet("test"))
-	// Output:
-	// 1
+// Greeter is the interface the example's services are registered as.
+type Greeter interface {
+	Greet(name string) string
 }
 
-func Example_register() {
-	// called by gocontainer's init() function
-	gocontainer.GlobalContainer = gocontainer.New()
+type politeGreeter struct{ greeting string }
 
-	gocontainer.Register("test", 1)
+func (g politeGreeter) Greet(name string) string { return g.greeting + ", " + name + "." }
 
-	fmt.Println(gocontainer.MustGet("test"))
-	// Output:
-	// 1
+func Example() {
+	// A key names a service and fixes its type.
+	greeterKey := gocontainer.NewKey[Greeter]("greeter")
+
+	// The zero Container is empty and ready to use.
+	var c gocontainer.Container
+	greeterKey.Register(&c, politeGreeter{greeting: "Good morning"})
+
+	// MustGet returns a Greeter: no type assertion.
+	greeter := greeterKey.MustGet(&c)
+	fmt.Println(greeter.Greet("Ada"))
+	// Output: Good morning, Ada.
 }
 
-func Example_deregister() {
-	// called by gocontainer's init() function
-	gocontainer.GlobalContainer = gocontainer.New()
+func ExampleNewKey() {
+	// Two keys with the same name and type are still two keys: each NewKey call makes a new one.
+	primary := gocontainer.NewKey[string]("dsn")
+	replica := gocontainer.NewKey[string]("dsn")
 
-	gocontainer.Register("test", 1)
-	gocontainer.Deregister("test")
+	var c gocontainer.Container
+	primary.Register(&c, "postgres://primary")
 
-	fmt.Println(gocontainer.Get("test"))
-	// Output:
-	// <nil> false
+	fmt.Println(primary.Has(&c), replica.Has(&c))
+	// Output: true false
 }
 
-func Example_has() {
-	// called by gocontainer's init() function
-	gocontainer.GlobalContainer = gocontainer.New()
+func ExampleKey_Register() {
+	greeterKey := gocontainer.NewKey[Greeter]("greeter")
 
-	gocontainer.Register("test", 1)
+	var c gocontainer.Container
+	// A politeGreeter goes in as a Greeter: the key's type checks it at compile time.
+	greeterKey.Register(&c, politeGreeter{greeting: "Hello"})
 
-	fmt.Println(gocontainer.Has("test"))
-	// Output:
-	// true
+	// Registering again under a key replaces the service.
+	greeterKey.Register(&c, politeGreeter{greeting: "Hi"})
+
+	fmt.Println(greeterKey.MustGet(&c).Greet("Grace"))
+	// Output: Hi, Grace.
 }
 
-func Example_get() {
-	// called by gocontainer's init() function
-	gocontainer.GlobalContainer = gocontainer.New()
+func ExampleKey_Get() {
+	portKey := gocontainer.NewKey[int]("port")
 
-	gocontainer.Register("test", 1)
-	o, ok := gocontainer.Get("test")
+	var c gocontainer.Container
+	port, ok := portKey.Get(&c)
+	fmt.Println(port, ok)
 
-	fmt.Println(o)
-	fmt.Println(ok)
+	portKey.Register(&c, 8080)
+	port, ok = portKey.Get(&c)
+	fmt.Println(port, ok)
 	// Output:
-	// 1
-	// true
+	// 0 false
+	// 8080 true
 }
 
-func Example_mustGet() {
-	// called by gocontainer's init() function
-	gocontainer.GlobalContainer = gocontainer.New()
+func ExampleKey_MustGet() {
+	outKey := gocontainer.NewKey[*os.File]("out")
 
-	gocontainer.Register("test", 1)
-	o := gocontainer.MustGet("test")
+	var c gocontainer.Container
+	outKey.Register(&c, os.Stdout)
 
-	fmt.Println(o)
-	// Output:
-	// 1
+	fmt.Fprintln(outKey.MustGet(&c), "written to the registered *os.File")
+	// Output: written to the registered *os.File
 }
 
-func Example_invoke() {
-	// called by gocontainer's init() function
-	gocontainer.GlobalContainer = gocontainer.New()
+func ExampleKey_MustGet_notRegistered() {
+	defer func() { fmt.Println(recover()) }()
 
-	gocontainer.Register("test", 1)
-	gocontainer.Invoke("test", func(i int, ok bool) {
-		fmt.Println(i)
-		fmt.Println(ok)
-	})
-
-	// Output:
-	// 1
-	// true
+	var c gocontainer.Container
+	gocontainer.NewKey[Greeter]("greeter").MustGet(&c)
+	// Output: gocontainer: no gocontainer_test.Greeter registered as "greeter"
 }
 
-func Example_mustInvoke() {
-	// called by gocontainer's init() function
-	gocontainer.GlobalContainer = gocontainer.New()
+func ExampleKey_Deregister() {
+	tokenKey := gocontainer.NewKey[string]("token")
 
-	gocontainer.Register("test", 1)
-	gocontainer.MustInvoke("test", func(i int) {
-		fmt.Println(i)
-	})
+	var c gocontainer.Container
+	tokenKey.Register(&c, "s3cr3t")
+	tokenKey.Deregister(&c)
 
-	// Output:
-	// 1
-}
-
-func Example_mustInvokeMany() {
-	// called by gocontainer's init() function
-	gocontainer.GlobalContainer = gocontainer.New()
-
-	gocontainer.Register("test1", 1)
-	gocontainer.Register("test2", 2)
-
-	gocontainer.MustInvokeMany("test1", "test2")(func(x int, y int) {
-		fmt.Println(x, "|", y)
-	})
-
-	// Output:
-	// 1 | 2
+	fmt.Println(tokenKey.Has(&c))
+	// Output: false
 }
